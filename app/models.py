@@ -10,7 +10,7 @@ class Category(Base):
     name = Column(String, unique=True, nullable=False, index=True)
 
     # Relationship to access expenses from a category instance
-    expenses = relationship("Expense", back_populates="category", cascade="all, delete-orphan")
+    expenses = relationship("Expense", back_populates="category")
 
 
 class Expense(Base):
@@ -21,7 +21,8 @@ class Expense(Base):
     description = Column(String, nullable=True)
     spent_on = Column(Date, nullable=False, default=datetime.date.today)
     
-    category_id = Column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
+    
+    category_id = Column(Integer, ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False)
 
     # Relationship back to Category
     category = relationship("Category", back_populates="expenses")
