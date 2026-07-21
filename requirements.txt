@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+strawberry-graphql[fastapi]>=0.235.0

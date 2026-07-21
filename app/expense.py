@@ -1,7 +1,7 @@
 import re
 from datetime import date
 from typing import List, Optional, Annotated
-from fastapi import APIRouter, Depends, Query, Path, HTTPException, status
+from fastapi import APIRouter, Query, Path, HTTPException, status
 from sqlalchemy import func, select
 
 from app.database import DbSession

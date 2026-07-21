@@ -17,6 +17,8 @@ class CategoryResponse(CategoryBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+
 # Expense Schema
 class ExpenseBase(BaseModel):
     # Field constraint enforces positive amount at the Pydantic/API level

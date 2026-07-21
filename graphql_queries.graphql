@@ -1,0 +1,92 @@
+# ==============================================================================
+# EXPENSE TRACKER - GRAPHQL OPERATIONS
+# Playground Endpoint: http://127.0.0.1:8000/graphql
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. QUERY: Filtered Expenses with Category Details
+# ------------------------------------------------------------------------------
+# Same filtering power as REST: categoryId, fromDate, toDate (all optional).
+# Demonstrates retrieving the nested category object inside each expense.
+
+query GetFilteredExpenses($categoryId: Int, $fromDate: Date, $toDate: Date) {
+  expenses(categoryId: $categoryId, fromDate: $fromDate, toDate: $toDate) {
+    id
+    amount
+    description
+    spentOn
+    categoryId
+    category {
+      id
+      name
+    }
+  }
+}
+
+# Example Variables to test in GraphiQL (bottom panel):
+# {
+#   "categoryId": 1,
+#   "fromDate": "2026-05-01",
+#   "toDate": "2026-05-31"
+# }
+
+# ------------------------------------------------------------------------------
+# 2. QUERY: Categories with Nested Expenses (Under/Over-fetching Fix)
+# ------------------------------------------------------------------------------
+# Each category exposes its nested list of expenses.
+# Fetches EVERY category's name with ONLY the amounts of its expenses.
+
+query GetCategoriesWithExpenseAmounts {
+  categories {
+    id
+    name
+    expenses {
+      amount
+    }
+  }
+}
+
+# ------------------------------------------------------------------------------
+# 3. MUTATION: Add Expense
+# ------------------------------------------------------------------------------
+# Uses a Strawberry input object (`AddExpenseInput`).
+# Returns the created expense along with its newly linked nested category.
+
+mutation AddNewExpense($input: AddExpenseInput!) {
+  addExpense(input: $input) {
+    id
+    amount
+    description
+    spentOn
+    categoryId
+    category {
+      id
+      name
+    }
+  }
+}
+
+# Example Variables to test in GraphiQL:
+# {
+#   "input": {
+#     "amount": 42.50,
+#     "description": "Team Lunch",
+#     "spentOn": "2026-05-20",
+#     "categoryId": 1
+#   }
+# }
+
+# ------------------------------------------------------------------------------
+# 4. MUTATION: Delete Expense
+# ------------------------------------------------------------------------------
+# Returns a boolean status (`true` on success).
+# If `id` doesn't exist, surfaces cleanly as a GraphQL error instead of crashing.
+
+mutation DeleteExpenseById($id: Int!) {
+  deleteExpense(id: $id)
+}
+
+# Example Variables to test in GraphiQL:
+# {
+#   "id": 1
+# }
