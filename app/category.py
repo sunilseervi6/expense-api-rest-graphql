@@ -1,7 +1,6 @@
 from typing import List
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select, func
-
 from app.database import DbSession
 from app.models import Category, Expense
 from app import schemas
