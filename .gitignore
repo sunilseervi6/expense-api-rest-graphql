@@ -1,0 +1,21 @@
+# Python bytecode / compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# SQLite Database
+*.db
+*.sqlite3
+
+# Environment/Secret variables
+.env
+
+# Editor settings
+.vscode/
+.idea/
