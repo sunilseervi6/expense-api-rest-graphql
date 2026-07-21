@@ -1,13 +1,15 @@
+import re
 from datetime import date
 from typing import List, Optional, Annotated
 from fastapi import APIRouter, Depends, Query, Path, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.database import DbSession
 from app.models import Expense, Category
 from app import schemas
 
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
+summary_router = APIRouter(tags=["Summary"])
 
 
 # 1. READ ALL EXPENSES WITH COMBINABLE FILTERS
@@ -39,7 +41,7 @@ def get_expenses(
 
     result = db.execute(stmt)
     return result.scalars().all()
-
+    
 
 # 2. READ SINGLE EXPENSE BY ID
 @router.get("/{expense_id}", response_model=schemas.ExpenseResponse, status_code=status.HTTP_200_OK)
@@ -144,3 +146,51 @@ def delete_expense(
     db.delete(expense)
     db.commit()
     return None
+
+
+
+@summary_router.get("/summary", response_model=schemas.MonthlySummaryResponse)
+def get_summary(
+    db: DbSession,
+    month: Annotated[Optional[str], Query(description="Month in YYYY-MM format")] = None
+):
+    if month is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Month parameter is required. Format must be YYYY-MM."
+        )
+    if not re.match(r"^\d{4}-(0[1-9]|1[0-2])$", month):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid month format. Format must be YYYY-MM."
+        )
+    # Query aggregates cleanly inside SQLite
+    stmt = (
+        select(
+            Category.name.label("category_name"),
+            func.coalesce(func.sum(Expense.amount), 0.0).label("total_amount")
+        )
+        .join(Expense, Category.id == Expense.category_id)
+        .where(func.strftime("%Y-%m", Expense.spent_on) == month)
+        .group_by(Category.id, Category.name)
+    )
+
+    results = db.execute(stmt).all()
+    grand_total = sum(r.total_amount for r in results)
+
+    breakdown = []
+    for r in results:
+        pct = round((r.total_amount / grand_total) * 100, 2) if grand_total > 0 else 0.0
+        breakdown.append(
+            schemas.CategorySummary(
+                category_name=r.category_name,
+                total_amount=round(r.total_amount, 2),
+                percentage=pct
+            )
+        )
+
+    return schemas.MonthlySummaryResponse(
+        month=month,
+        total_spend=round(grand_total, 2),
+        categories=breakdown
+    )

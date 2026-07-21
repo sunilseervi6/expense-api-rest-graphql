@@ -45,3 +45,14 @@ class ExpenseResponse(BaseModel):
     category: CategoryResponse
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CategorySummary(BaseModel):
+    category_name: str
+    total_amount: float
+    percentage: float = Field(..., description="Percentage share of total monthly spend (0-100)")
+
+class MonthlySummaryResponse(BaseModel):
+    month: str
+    total_spend: float
+    categories: list[CategorySummary]

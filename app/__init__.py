@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from app.database import engine, Base
 from app import models  # Ensures models are registered before create_all
 from app.category import router as category_router
-from app.expense import router as expense_router
+from app.expense import router as expense_router, summary_router
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Expense Tracker")
@@ -12,4 +12,5 @@ def create_app() -> FastAPI:
 
     app.include_router(category_router)
     app.include_router(expense_router)
+    app.include_router(summary_router)
     return app
