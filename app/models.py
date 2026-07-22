@@ -1,31 +1,30 @@
 import datetime
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, CheckConstraint
-from sqlalchemy.orm import relationship
+from typing import List, Optional
+from sqlalchemy import String, ForeignKey, CheckConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 class Category(Base):
     __tablename__ = "categories"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
 
     # Relationship to access expenses from a category instance
-    expenses = relationship("Expense", back_populates="category")
+    expenses: Mapped[List["Expense"]] = relationship("Expense", back_populates="category")
 
 
 class Expense(Base):
     __tablename__ = "expenses"
 
-    id = Column(Integer, primary_key=True, index=True)
-    amount = Column(Float, nullable=False)
-    description = Column(String, nullable=True)
-    spent_on = Column(Date, nullable=False, default=datetime.date.today)
-    
-    
-    category_id = Column(Integer, ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    amount: Mapped[float] = mapped_column(nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(default=None)
+    spent_on: Mapped[datetime.date] = mapped_column(default=datetime.date.today)
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False)
 
     # Relationship back to Category
-    category = relationship("Category", back_populates="expenses")
+    category: Mapped["Category"] = relationship("Category", back_populates="expenses")
 
     # Table argument ensuring amount > 0
     __table_args__ = (

@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Depends
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from strawberry.fastapi import GraphQLRouter
 
 from app.database import engine, Base, get_db
@@ -27,5 +29,13 @@ def create_app() -> FastAPI:
     # 2. Mount Strawberry GraphQL Router at /graphql
     graphql_app = GraphQLRouter(schema, context_getter=get_graphql_context)
     app.include_router(graphql_app, prefix="/graphql")
+
+    # 3. Serve index.html static frontend at root path
+    @app.get("/", include_in_schema=False)
+    def read_index():
+        return FileResponse("static/index.html")
+
+    # 4. Mount static directory for external stylesheets and scripts
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
     return app
